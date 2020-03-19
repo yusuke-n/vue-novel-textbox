@@ -1,72 +1,131 @@
 <template>
-<div class="novel-textbox-wrapper" @click="onClick">
+<div class="novel-textbox-wrapper"
+  :class="className"
+  @pointerdown="onClick"
+>
   <span>{{ displayed }}</span>
 </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-
-const NovelTextProp = Vue.extend({
-  props: {
-    content: String,
-    delay: Number
-  }
-});
+import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 
 @Component
-export default class NovelTextBox extends NovelTextProp {
-  currentIdx = 0;
-  displayed = '';
-  itr: Generator | null = null;
-  skipped = false;
-
-  created() {
-    this.itr = this.genIterator();
-    this.displayAsync();
-  }
-
-  * genIterator() {
-    for (let i = 0; i < this.content.length; i++) {
-      yield this.content[i];
-      this.currentIdx = i;
+export default class NovelTextBox extends Vue {
+  @Prop({ default: '' }) readonly content!: string[];
+  @Prop({ default: 100 }) readonly delay!: number;
+  @Prop({ default: false }) readonly ready!: boolean;
+  @Prop() readonly className?: string | string[];
+  @Prop({ default: false }) readonly skip!: boolean;
+  @Prop({ default: false }) readonly autoStart!: boolean;
+  @Watch('ready')
+  onReadyChanged(val: boolean, oldVal: boolean) {
+    if (!oldVal && val) {
+      this.reset();
+      this.displayWithDelay();
     }
   }
 
-  async displayAsync() {
-    for (let i = 0; i < this.content.length; i++) {
-      if (i > 0) {
-        await this.sleep(this.delay);
+  currentStringIdx = 0;
+  currentSentenceIdx = 0;
+  displayed = '';
+  itr: Generator | null = null;
+  skipped = false;
+  sentenceFinished = false;
+  started = false;
+
+  created() {
+    this.itr = this.genIterator();
+  }
+
+  mounted() {
+    if (this.autoStart || this.ready) {
+      this.start();
+    }
+  }
+
+  * genIterator() {
+    for (let i = 0; i < this.sentence.length; i++) {
+      yield this.sentence[i];
+      this.currentStringIdx = i;
+    }
+  }
+
+  get sentence(): string {
+    return this.content[this.currentSentenceIdx];
+  }
+
+  start() {
+    if (this.skip) {
+      this.displayWithDelay(0);
+    } else {
+      this.displayWithDelay();
+    }
+  }
+
+  async displayWithDelay(delay?: number) {
+    if (this.itr === null) {
+      throw new Error();
+    }
+
+    let itrRes = this.itr.next();
+    while (!itrRes.done) {
+      if (this.currentStringIdx > 0) {
+        const d = delay === undefined ? this.delay : delay;
+        await this.wait(d);
       }
       if (this.skipped) {
         break;
       }
-
-      if (this.itr !== null) {
-        this.displayed += this.itr.next().value;
-      } else {
-        throw new Error();
-      }
+      this.displayed += itrRes.value;
+      itrRes = this.itr.next();
+    }
+    this.sentenceFinished = true;
+    if (this.currentSentenceIdx === this.content.length - 1) {
+      this.$emit('paragraph-end');
+    } else {
+      this.$emit('sentence-end', this.currentSentenceIdx);
+    }
+    if (this.skip) {
+      this.nextSentence();
     }
   }
 
-  displayAll() {
-    this.displayed = this.content.slice(0);
+  skipDisplay() {
+    this.skipped = true;
+    this.displayed = this.sentence.slice(0);
   }
 
   onClick() {
-    this.skipped = true;
-    this.displayAll();
+    if (this.sentenceFinished) {
+      this.nextSentence();
+    } else {
+      this.skipDisplay();
+    }
   }
 
   reset() {
     this.displayed = '';
-    this.currentIdx = 0;
+    this.currentStringIdx = 0;
+    this.currentSentenceIdx = 0;
     this.skipped = false;
   }
 
-  sleep(delay: number) {
-    return new Promise((resolve, reject) => {
+  nextSentence() {
+    if (this.currentSentenceIdx >= this.content.length - 1) {
+      return;
+    }
+    this.displayed = '';
+    this.currentStringIdx = 0;
+    this.currentSentenceIdx += 1;
+    this.skipped = false;
+    this.sentenceFinished = false;
+    this.itr = this.genIterator();
+    this.start();
+  }
+
+  wait(delay: number) {
+    return new Promise((resolve) => {
       setTimeout(() => { resolve(); }, delay);
     });
   }
@@ -74,7 +133,4 @@ export default class NovelTextBox extends NovelTextProp {
 </script>
 
 <style lang="scss" scoped>
-.novel-textbox-wrapper {
-    margin: 0
-}
 </style>

@@ -12,6 +12,7 @@ module.exports = {
     ecmaVersion: 2020
   },
   rules: {
+    'max-len': ['error', { 'code': 90 }],
     'semi': ['error', 'always'],
     'space-before-function-paren': ['error', 'never'],
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
