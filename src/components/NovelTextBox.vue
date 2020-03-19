@@ -3,7 +3,7 @@
   :class="className"
   @pointerdown="onClick"
 >
-  <span>{{ displayed }}</span>
+  <span :class="{ 'supress-select': supressSelect }">{{ displayed }}</span>
 </div>
 </template>
 
@@ -18,6 +18,7 @@ export default class NovelTextBox extends Vue {
   @Prop() readonly className?: string | string[];
   @Prop({ default: false }) readonly skip!: boolean;
   @Prop({ default: false }) readonly autoStart!: boolean;
+  @Prop({ default: true }) readonly supressSelect!: boolean;
   @Watch('ready')
   onReadyChanged(val: boolean, oldVal: boolean) {
     if (!oldVal && val) {
@@ -51,8 +52,13 @@ export default class NovelTextBox extends Vue {
     }
   }
 
+  get trimmedContent(): string[] {
+    return this.content.filter((s) => s !== '');
+  }
+
   get sentence(): string {
-    return this.content[this.currentSentenceIdx];
+    const s = this.trimmedContent[this.currentSentenceIdx];
+    return s === undefined ? '' : s;
   }
 
   start() {
@@ -81,7 +87,7 @@ export default class NovelTextBox extends Vue {
       itrRes = this.itr.next();
     }
     this.sentenceFinished = true;
-    if (this.currentSentenceIdx === this.content.length - 1) {
+    if (this.currentSentenceIdx === this.trimmedContent.length - 1) {
       this.$emit('paragraph-end');
     } else {
       this.$emit('sentence-end', this.currentSentenceIdx);
@@ -133,4 +139,11 @@ export default class NovelTextBox extends Vue {
 </script>
 
 <style lang="scss" scoped>
+span {
+  width: 100%;
+  overflow-wrap: break-word;
+  &.supress-select {
+    user-select: none;
+  }
+}
 </style>
