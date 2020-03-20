@@ -3,7 +3,20 @@
   :class="className"
   @pointerdown="onClick"
 >
-  <span :class="{ 'supress-select': supressSelect }">{{ displayed }}</span>
+  <span
+    :class="{ 'supress-select': supressSelect }"
+    :style="{ 'word-break': wordBreakMode }"
+    v-for="(s, k) in displayed"
+    :key="k"
+  >
+    {{ s }}
+  </span>
+  <span
+    :class="{ 'supress-select': supressSelect }"
+    :style="{ 'word-break': wordBreakMode }"
+  >
+    {{ currentTyping }}
+  </span>
 </div>
 </template>
 
@@ -19,6 +32,8 @@ export default class NovelTextBox extends Vue {
   @Prop({ default: false }) readonly skip!: boolean;
   @Prop({ default: false }) readonly autoStart!: boolean;
   @Prop({ default: true }) readonly supressSelect!: boolean;
+  @Prop({ default: 'word-break' }) readonly wordBreak!: string;
+  @Prop({ default: '\n' }) readonly lfSymbol!: string;
   @Watch('ready')
   onReadyChanged(val: boolean, oldVal: boolean) {
     if (!oldVal && val) {
@@ -29,7 +44,8 @@ export default class NovelTextBox extends Vue {
 
   currentStringIdx = 0;
   currentSentenceIdx = 0;
-  displayed = '';
+  displayed: string[] = [];
+  currentTyping = '';
   itr: Generator | null = null;
   skipped = false;
   sentenceFinished = false;
@@ -52,13 +68,28 @@ export default class NovelTextBox extends Vue {
     }
   }
 
-  get trimmedContent(): string[] {
-    return this.content.filter((s) => s !== '');
+  get normalizedContent(): string[] {
+    return this.content
+      .filter((s) => s !== '')
+      .map((s) => s.replace(this.lfSymbol, '\n'));
   }
 
   get sentence(): string {
-    const s = this.trimmedContent[this.currentSentenceIdx];
+    const s = this.normalizedContent[this.currentSentenceIdx];
     return s === undefined ? '' : s;
+  }
+
+  get wordBreakMode(): string {
+    switch (this.wordBreak) {
+      case 'break-all':
+      case 'keep-all' :
+        return this.wordBreak;
+      case 'break-word':
+        console.log('[WARN] word-break: break-word is deprecated.');
+        return this.wordBreak;
+      default:
+        return 'normal';
+    }
   }
 
   start() {
@@ -83,11 +114,14 @@ export default class NovelTextBox extends Vue {
       if (this.skipped) {
         break;
       }
-      this.displayed += itrRes.value;
+      if (itrRes.value === '\n') {
+        this.lineFeed();
+      }
+      this.currentTyping += itrRes.value;
       itrRes = this.itr.next();
     }
     this.sentenceFinished = true;
-    if (this.currentSentenceIdx === this.trimmedContent.length - 1) {
+    if (this.currentSentenceIdx === this.normalizedContent.length - 1) {
       this.$emit('paragraph-end');
     } else {
       this.$emit('sentence-end', this.currentSentenceIdx);
@@ -99,7 +133,13 @@ export default class NovelTextBox extends Vue {
 
   skipDisplay() {
     this.skipped = true;
-    this.displayed = this.sentence.slice(0);
+    this.currentTyping = '';
+    this.displayed = this.sentence.split('\n');
+  }
+
+  lineFeed() {
+    this.displayed.push(this.currentTyping);
+    this.currentTyping = '';
   }
 
   onClick() {
@@ -111,7 +151,7 @@ export default class NovelTextBox extends Vue {
   }
 
   reset() {
-    this.displayed = '';
+    this.currentTyping = '';
     this.currentStringIdx = 0;
     this.currentSentenceIdx = 0;
     this.skipped = false;
@@ -121,7 +161,8 @@ export default class NovelTextBox extends Vue {
     if (this.currentSentenceIdx >= this.content.length - 1) {
       return;
     }
-    this.displayed = '';
+    this.displayed = [];
+    this.currentTyping = '';
     this.currentStringIdx = 0;
     this.currentSentenceIdx += 1;
     this.skipped = false;
@@ -140,6 +181,7 @@ export default class NovelTextBox extends Vue {
 
 <style lang="scss" scoped>
 span {
+  display: block;
   width: 100%;
   overflow-wrap: break-word;
   &.supress-select {

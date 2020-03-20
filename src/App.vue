@@ -10,6 +10,8 @@
           :auto-start="false"
           :skip="skip"
           :delay="delay"
+          :lf-symbol="lfSym"
+          word-break="break-all"
           :key="k"/>
       </div>
     </div>
@@ -36,6 +38,12 @@
             </div>
         </div>
       </div>
+      <div class="input-wrapper">
+        <label>lf-symbol</label>
+        <div class="field">
+          <input class="text-input" type="text" v-model="lfSym">
+        </div>
+      </div>
     </div>
     <div class="container start">
       <button @click="start">Start!!</button>
@@ -59,7 +67,8 @@ export default class App extends Vue {
   delay = 50
   ready = false
   skip = false
-  k = 0;
+  k = 0
+  lfSym = '<n>'
 
   mounted() {
     this.ready = true;
