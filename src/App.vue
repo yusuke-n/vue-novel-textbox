@@ -213,9 +213,10 @@ textarea {
 
 @media (max-width: 768px) {
   .control {
-    flex-wrap: wrap-reverse;
+    flex-direction: column-reverse;
     .container.start {
       margin-bottom: 24px;
+      flex-basis: 0;
     }
   }
   textarea {
@@ -233,6 +234,9 @@ textarea {
   }
   textarea {
     width: 100%;
+  }
+  .container.start {
+    flex-basis: 198px;
   }
 }
 </style>
