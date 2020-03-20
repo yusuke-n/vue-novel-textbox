@@ -20,7 +20,7 @@
         <div class="input-wrapper">
         <label>content</label>
         <div class="field">
-          <textarea class="text-input" placeholder="input text" v-model="str"/>
+          <textarea class="text-input" placeholder="input sentence(s)" v-model="str"/>
         </div>
       </div>
       <div class="input-wrapper">
@@ -139,9 +139,12 @@ body {
         background: #87daa4;
         border-radius: 4px;
         font-size: 26px;
+        color: #0a4e1c;
         cursor: pointer;
-        &:hover {
+        &:hover,
+        &:active {
           background: #afe6c2;
+          color: #3b8e51;
         }
       }
     }
@@ -206,5 +209,30 @@ textarea {
   width: 100%;
   height: 100%;
   padding: 16px 32px
+}
+
+@media (max-width: 768px) {
+  .control {
+    flex-wrap: wrap-reverse;
+    .container.start {
+      margin-bottom: 24px;
+    }
+  }
+  textarea {
+    width: 100%;
+    height: 142px;
+  }
+}
+
+@media (max-width: 992px) {
+  .input-wrapper {
+    label {
+      flex-basis: 60px;
+      width: 60px;
+    }
+  }
+  textarea {
+    width: 100%;
+  }
 }
 </style>
