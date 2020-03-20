@@ -1,5 +1,8 @@
 # vue-novel-textbox
 
+# demo
+https://vue-novel-textbox.netlify.com/
+
 ## Project setup
 ```
 yarn install
