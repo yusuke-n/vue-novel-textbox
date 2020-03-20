@@ -83,9 +83,7 @@ export default class NovelTextBox extends Vue {
     switch (this.wordBreak) {
       case 'break-all':
       case 'keep-all' :
-        return this.wordBreak;
       case 'break-word':
-        console.log('[WARN] word-break: break-word is deprecated.');
         return this.wordBreak;
       default:
         return 'normal';
