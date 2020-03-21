@@ -49,6 +49,9 @@
       <button @click="start">Start!!</button>
     </div>
   </div>
+  <footer>
+    <a href="https://github.com/yusuke-n/vue-novel-textbox">github</a>
+  </footer>
 </div>
 </template>
 
@@ -189,6 +192,15 @@ body {
       margin-right: .5rem;
     }
   }
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 12px;
+  background: #fff;
 }
 
 textarea {
