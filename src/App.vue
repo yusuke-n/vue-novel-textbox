@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <h1>vue-novel-textbox</h1>
+    <header>
+      <h1>vue-novel-textbox</h1>
+      <p>Vue component for visual novel-like text control</p>
+      <a href="https://github.com/yusuke-n/vue-novel-textbox">github</a>
+    </header>
     <div class="wrap msg">
       <div class="msg-window">
         <NovelTextBox
@@ -49,9 +53,6 @@
       <button @click="start">Start!!</button>
     </div>
   </div>
-  <footer>
-    <a href="https://github.com/yusuke-n/vue-novel-textbox">github</a>
-  </footer>
 </div>
 </template>
 
@@ -117,7 +118,7 @@ body {
 
 .wrap {
   width: 80%;
-  margin: 30px auto;
+  margin: 24px auto;
   display: flex;
   flex-direction: row;
 }
